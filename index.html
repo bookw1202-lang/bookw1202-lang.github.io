@@ -133,20 +133,21 @@ function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
   songs.forEach(song => {
-    let thumbUrl = song.type === "youtube" 
-      ? "https://img.youtube.com/vi/" + song.id + "/mqdefault.jpg"
-      : "https://nicovideo-thumbnail.api.nlxapp.com/thumb/" + song.id; // 仮のサムネ
+    let thumbHtml = song.type === "youtube"
+      ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
+      : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">Nico</div>`;
+
     list.innerHTML += `
-    <div class="link" data-id="${song.id}" data-type="${song.type}">
-      <div class="left">
-        <img class="thumb" src="${thumbUrl}">
-        <div>
-          <div>${song.title}</div>
-          <div style="font-size:10px">${song.artist}</div>
+      <div class="link" data-id="${song.id}" data-type="${song.type}">
+        <div class="left">
+          ${thumbHtml}
+          <div>
+            <div>${song.title}</div>
+            <div style="font-size:10px">${song.artist}</div>
+          </div>
         </div>
-      </div>
-      <div class="icon" onclick="playSong('${song.id}','${song.type}')">▶</div>
-    </div>`;
+        <div class="icon" onclick="playSong('${song.id}','${song.type}')">▶</div>
+      </div>`;
   });
 }
 
