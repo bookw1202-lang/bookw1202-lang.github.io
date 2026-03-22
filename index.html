@@ -16,7 +16,6 @@ body {
   backdrop-filter: blur(2px);
 }
 
-/* メニュー */
 #menu {
   display: flex;
   justify-content: center;
@@ -34,6 +33,15 @@ body {
 .menu-btn.active {
   background: red;
   color: #fff;
+}
+
+/* プルダウン */
+#artistFilter {
+  display: block;
+  margin: 0 auto 10px auto;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 14px;
 }
 
 /* 曲リスト */
@@ -90,7 +98,6 @@ body {
   color: #000;
 }
 
-/* 小窓 */
 #player {
   position: fixed;
   bottom: 10px;
@@ -117,6 +124,11 @@ body {
   <div class="menu-btn" onclick="switchMenu('favorites')">⭐ Favorites</div>
 </div>
 
+<!-- アーティスト検索 -->
+<select id="artistFilter" onchange="filterByArtist()">
+  <option value="all">All Artists</option>
+</select>
+
 <div id="list"></div>
 
 <iframe id="player" width="360" height="200" style="display:none;" allow="autoplay" frameborder="0"></iframe>
@@ -135,17 +147,30 @@ let songs = [
 let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
 let currentMenu = 'all';
 
-function render() {
+// プルダウン初期化
+function populateArtistFilter() {
+  const select = document.getElementById("artistFilter");
+  let artists = [...new Set(songs.map(s => s.artist))];
+  artists.forEach(a => {
+    const opt = document.createElement("option");
+    opt.value = a;
+    opt.textContent = a;
+    select.appendChild(opt);
+  });
+}
+
+// 曲リスト描画
+function render(displaySongs = null) {
   const list = document.getElementById("list");
   list.innerHTML = "";
-  let displaySongs = currentMenu === 'all' ? songs : songs.filter(s => favorites.includes(s.id));
+  let songsToShow = displaySongs || (currentMenu === 'all' ? songs : songs.filter(s => favorites.includes(s.id)));
 
-  displaySongs.forEach(song => {
+  songsToShow.forEach(song => {
     let isFav = favorites.includes(song.id);
     let thumbHtml = song.type === "youtube"
       ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
       : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">Nico</div>`;
-
+    
     let iconsHtml = song.type === "youtube"
       ? `<div class="icon" onclick="playSong('${song.id}','youtube')">▶</div>
          <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')">YT</div>
@@ -192,6 +217,15 @@ function toggleFavorite(id){
   render();
 }
 
+// アーティスト検索
+function filterByArtist() {
+  const selected = document.getElementById("artistFilter").value;
+  let displaySongs = selected === 'all' ? songs : songs.filter(s => s.artist === selected);
+  render(displaySongs);
+}
+
+// 初期化
+populateArtistFilter();
 render();
 </script>
 
