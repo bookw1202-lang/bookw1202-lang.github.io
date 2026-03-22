@@ -11,9 +11,29 @@ body {
   color: red;
   font-family: sans-serif;
   margin: 0;
-  padding-bottom: 180px;
+  padding-bottom: 200px;
 }
 
+/* メニュー */
+#menu {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+.menu-btn {
+  margin: 0 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #111;
+  color: #fff;
+}
+.menu-btn.active {
+  background: red;
+  color: #fff;
+}
+
+/* 曲リスト */
 .link {
   display: flex;
   justify-content: space-between;
@@ -23,10 +43,6 @@ body {
   margin: 10px;
   padding: 10px;
   border-radius: 12px;
-}
-
-.link.active {
-  border: 1px solid red;
 }
 
 .left {
@@ -52,7 +68,11 @@ body {
 }
 
 .icon.fav {
-  background: #ff0;
+  background: #ccc;
+  color: #000;
+}
+.icon.fav.active {
+  background: gold;
   color: #000;
 }
 
@@ -73,6 +93,13 @@ body {
 <body>
 
 <h2 style="text-align:center;">Songs</h2>
+
+<!-- メニュー -->
+<div id="menu">
+  <div class="menu-btn active" onclick="switchMenu('all')">All Songs</div>
+  <div class="menu-btn" onclick="switchMenu('favorites')">⭐ Favorites</div>
+</div>
+
 <div id="list"></div>
 
 <iframe id="player" width="320" height="180" style="display:none;" allow="autoplay" frameborder="0"></iframe>
@@ -88,23 +115,26 @@ let songs = [
 
 // LocalStorageからお気に入り読み込み
 let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+let currentMenu = 'all';
 
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
-  songs.forEach(song => {
+  
+  let displaySongs = currentMenu === 'all' ? songs : songs.filter(s => favorites.includes(s.id));
+  
+  displaySongs.forEach(song => {
     let isFav = favorites.includes(song.id);
     let thumbHtml = song.type === "youtube"
       ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
       : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">Nico</div>`;
 
-    // YouTubeは小窓再生＋公式サイトボタン＋お気に入り
     let iconsHtml = song.type === "youtube"
       ? `<div class="icon" onclick="playSong('${song.id}','youtube')">▶</div>
          <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')">YT</div>
-         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">☆</div>`
+         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">⭐</div>`
       : `<div class="icon" onclick="window.open('${song.url}','_blank')">Nico</div>
-         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">☆</div>`;
+         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">⭐</div>`;
 
     list.innerHTML += `
       <div class="link">
@@ -118,6 +148,14 @@ function render() {
         ${iconsHtml}
       </div>`;
   });
+}
+
+// メニュー切替
+function switchMenu(menu){
+  currentMenu = menu;
+  document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`.menu-btn[onclick="switchMenu('${menu}')"]`).classList.add('active');
+  render();
 }
 
 // 小窓再生
