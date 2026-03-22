@@ -45,7 +45,6 @@ body {
   cursor: pointer;
 }
 
-/* Spotify風プレイヤー */
 #playerBar {
   position: fixed;
   bottom: 0;
@@ -112,7 +111,7 @@ body {
   <div class="progress">
     <div id="progressBar" class="progress-bar"></div>
   </div>
-  <iframe id="player" width="0" height="0"></iframe>
+  <iframe id="player" width="0" height="0" allow="autoplay" frameborder="0"></iframe>
 </div>
 
 <script>
@@ -149,7 +148,6 @@ function playSong(id) {
   const song = songs.find(s => s.id === id);
   document.getElementById("playerBar").style.display = "block";
 
-  // ✅ スマホ対応：ユーザー操作時に初めてiframeにURLセット
   document.getElementById("player").src =
     "https://www.youtube.com/embed/" + id + "?autoplay=1";
 
