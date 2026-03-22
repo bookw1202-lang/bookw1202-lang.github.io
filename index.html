@@ -8,17 +8,18 @@
 <style>
 body {
   background: #000;
-  color: #fff;
+  color: red;
   font-family: sans-serif;
   margin: 0;
-  padding-bottom: 150px;
+  padding-bottom: 180px;
 }
 
 .link {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #111;
+  background: #fff;
+  color: #000;
   margin: 10px;
   padding: 10px;
   border-radius: 12px;
@@ -47,6 +48,12 @@ body {
   padding: 4px 6px;
   border-radius: 6px;
   background: #222;
+  color: #fff;
+}
+
+.icon.fav {
+  background: #ff0;
+  color: #000;
 }
 
 #playerBar {
@@ -65,6 +72,7 @@ body {
 
 <body>
 
+<h2 style="text-align:center;">Songs</h2>
 <div id="list"></div>
 
 <iframe id="player" width="320" height="180" style="display:none;" allow="autoplay" frameborder="0"></iframe>
@@ -78,20 +86,25 @@ let songs = [
   {id:"sm42423338", type:"niconico", title:"祝福", artist:"NORISTRY×ﾀﾗﾁｵ×もるでお", url:"https://www.nicovideo.jp/watch/sm42423338?ref=androidapp_other"}
 ];
 
+// LocalStorageからお気に入り読み込み
+let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
   songs.forEach(song => {
+    let isFav = favorites.includes(song.id);
     let thumbHtml = song.type === "youtube"
       ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
       : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">Nico</div>`;
 
-    // YouTubeは小窓再生＋公式サイトボタン
-    // ニコニコは公式サイトボタンのみ
+    // YouTubeは小窓再生＋公式サイトボタン＋お気に入り
     let iconsHtml = song.type === "youtube"
       ? `<div class="icon" onclick="playSong('${song.id}','youtube')">▶</div>
-         <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')">YT</div>`
-      : `<div class="icon" onclick="window.open('${song.url}','_blank')">Nico</div>`;
+         <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')">YT</div>
+         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">☆</div>`
+      : `<div class="icon" onclick="window.open('${song.url}','_blank')">Nico</div>
+         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">☆</div>`;
 
     list.innerHTML += `
       <div class="link">
@@ -107,12 +120,24 @@ function render() {
   });
 }
 
+// 小窓再生
 function playSong(id,type){
   const player = document.getElementById("player");
   if(type === "youtube"){
     player.style.display = "block";
     player.src = "https://www.youtube.com/embed/" + id + "?autoplay=1";
   }
+}
+
+// お気に入り切り替え
+function toggleFavorite(id){
+  if(favorites.includes(id)){
+    favorites = favorites.filter(f => f !== id);
+  } else {
+    favorites.push(id);
+  }
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+  render();
 }
 
 render();
