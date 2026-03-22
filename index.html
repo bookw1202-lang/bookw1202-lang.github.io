@@ -11,7 +11,7 @@ body {
   color: #fff;
   font-family: sans-serif;
   margin: 0;
-  padding-bottom: 100px;
+  padding-bottom: 150px;
 }
 
 .link {
@@ -41,56 +41,24 @@ body {
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
+  margin-left: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #222;
 }
 
 #playerBar {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #181818;
-  padding: 10px;
+  bottom: 10px;
+  left: 10px;
+  width: 320px;
+  height: 180px;
   display: none;
-}
-
-.player-top {
-  display: flex;
-  align-items: center;
-}
-
-.player-thumb {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
-}
-
-.player-info {
-  flex: 1;
-}
-
-.player-title { font-size: 14px; }
-.player-artist { font-size: 11px; color: #aaa; }
-
-.player-btn {
-  font-size: 20px;
-  margin-left: 10px;
-  cursor: pointer;
-}
-
-.progress {
-  height: 4px;
-  background: #333;
-  margin-top: 8px;
-  border-radius: 2px;
+  border: 2px solid red;
+  border-radius: 12px;
   overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  background: red;
 }
 </style>
 </head>
@@ -99,20 +67,7 @@ body {
 
 <div id="list"></div>
 
-<div id="playerBar">
-  <div class="player-top">
-    <img id="pThumb" class="player-thumb">
-    <div class="player-info">
-      <div id="pTitle" class="player-title"></div>
-      <div id="pArtist" class="player-artist"></div>
-    </div>
-    <div class="player-btn" onclick="togglePlay()">⏸</div>
-  </div>
-  <div class="progress">
-    <div id="progressBar" class="progress-bar"></div>
-  </div>
-  <iframe id="player" width="0" height="0" allow="autoplay" frameborder="0"></iframe>
-</div>
+<iframe id="player" width="320" height="180" style="display:none;" allow="autoplay" frameborder="0"></iframe>
 
 <script>
 // 曲リスト
@@ -123,12 +78,6 @@ let songs = [
   {id:"sm42423338", type:"niconico", title:"祝福", artist:"NORISTRY×ﾀﾗﾁｵ×もるでお", url:"https://www.nicovideo.jp/watch/sm42423338?ref=androidapp_other"}
 ];
 
-let currentId = null;
-let currentType = null;
-let isPlaying = false;
-let progress = 0;
-let interval = null;
-
 function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
@@ -137,12 +86,15 @@ function render() {
       ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
       : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">Nico</div>`;
 
-    let onclickFunc = song.type === "youtube"
-      ? `playSong('${song.id}','youtube')`
-      : `window.open('${song.url}','_blank')`; // ニコニコは新しいタブで開く
+    // YouTubeは小窓再生＋公式サイトボタン
+    // ニコニコは公式サイトボタンのみ
+    let iconsHtml = song.type === "youtube"
+      ? `<div class="icon" onclick="playSong('${song.id}','youtube')">▶</div>
+         <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')">YT</div>`
+      : `<div class="icon" onclick="window.open('${song.url}','_blank')">Nico</div>`;
 
     list.innerHTML += `
-      <div class="link" data-id="${song.id}" data-type="${song.type}">
+      <div class="link">
         <div class="left">
           ${thumbHtml}
           <div>
@@ -150,59 +102,17 @@ function render() {
             <div style="font-size:10px">${song.artist}</div>
           </div>
         </div>
-        <div class="icon" onclick="${onclickFunc}">▶</div>
+        ${iconsHtml}
       </div>`;
   });
 }
 
-function playSong(id, type) {
-  const song = songs.find(s => s.id === id);
-  document.getElementById("playerBar").style.display = "block";
-
+function playSong(id,type){
   const player = document.getElementById("player");
   if(type === "youtube"){
+    player.style.display = "block";
     player.src = "https://www.youtube.com/embed/" + id + "?autoplay=1";
-    document.getElementById("pThumb").src = "https://img.youtube.com/vi/" + id + "/mqdefault.jpg";
-  } else {
-    document.getElementById("pThumb").src = "";
   }
-
-  document.getElementById("pTitle").textContent = song.title;
-  document.getElementById("pArtist").textContent = song.artist;
-
-  currentId = id;
-  currentType = type;
-  isPlaying = type === "youtube";
-
-  document.querySelectorAll(".link").forEach(el => el.classList.remove("active"));
-  document.querySelector(`[data-id="${id}"]`).classList.add("active");
-
-  startProgress();
-}
-
-function togglePlay() {
-  const player = document.getElementById("player");
-  if (!currentId || currentType !== "youtube") return;
-
-  if (isPlaying) {
-    player.src = "";
-    isPlaying = false;
-    clearInterval(interval);
-  } else {
-    player.src = "https://www.youtube.com/embed/" + currentId + "?autoplay=1";
-    isPlaying = true;
-    startProgress();
-  }
-}
-
-function startProgress() {
-  clearInterval(interval);
-  progress = 0;
-  interval = setInterval(() => {
-    progress += 1;
-    document.getElementById("progressBar").style.width = progress + "%";
-    if (progress >= 100) clearInterval(interval);
-  }, 1000);
 }
 
 render();
