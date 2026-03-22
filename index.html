@@ -2,28 +2,40 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Songs</title>
 
 <style>
 body {
   background: #000;
   color: red;
-  font-family: -apple-system, BlinkMacSystemFont;
+  font-family: sans-serif;
   text-align: center;
-  padding: 20px;
+  padding: 15px;
 }
 
-h1 {
-  margin-bottom: 10px;
+h1 { margin-bottom: 10px; }
+
+input {
+  width: 80%;
+  padding: 8px;
+  margin: 6px;
+  border-radius: 10px;
+  border: none;
+}
+
+button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: red;
+  color: white;
 }
 
 .section-title {
-  margin: 20px 0 10px;
-  font-size: 14px;
-  color: #ff4d4d;
+  margin-top: 20px;
 }
 
-/* カード */
 .link {
   display: flex;
   justify-content: space-between;
@@ -31,13 +43,11 @@ h1 {
   background: #fff;
   color: #000;
   margin: 10px auto;
-  padding: 12px;
-  border-radius: 16px;
+  padding: 10px;
+  border-radius: 15px;
   max-width: 420px;
-  box-shadow: 0 0 10px rgba(255,0,0,0.2);
 }
 
-/* 左側 */
 .left {
   display: flex;
   align-items: center;
@@ -45,46 +55,26 @@ h1 {
 }
 
 .thumb {
-  width: 55px;
-  height: 55px;
+  width: 50px;
+  height: 50px;
   margin-right: 10px;
   border-radius: 10px;
 }
 
-.text {
-  text-align: left;
-}
-
-.title {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.artist {
-  font-size: 11px;
-  color: #555;
-}
-
 .icon {
   cursor: pointer;
-  margin-left: 8px;
+  margin-left: 5px;
 }
 
-.star {
-  font-size: 18px;
-}
-
-/* プレイヤー */
 #playerBox {
   position: fixed;
   bottom: 10px;
   left: 10px;
   right: 10px;
   background: #fff;
-  border-radius: 16px;
-  padding: 10px;
+  border-radius: 15px;
   display: none;
-  box-shadow: 0 0 15px rgba(255,0,0,0.3);
+  padding: 10px;
 }
 </style>
 
@@ -93,133 +83,27 @@ h1 {
 
 <h1>Songs</h1>
 
-<div class="section-title">Favorites</div>
+<input id="search" placeholder="検索..." oninput="searchSongs()">
+
+<h3>曲追加</h3>
+<input id="title" placeholder="曲名">
+<input id="artist" placeholder="アーティスト">
+<input id="url" placeholder="YouTube URL">
+<button onclick="addSong()">追加</button>
+
+<h3>Favorites</h3>
 <div id="favorites"></div>
 
-<div class="section-title">All Songs</div>
+<h3>All Songs</h3>
+<div id="list"></div>
 
-<!-- 曲 -->
-<div class="link" data-id="bRQjhxXNyr4">
-  <div class="left" onclick="playVideo('bRQjhxXNyr4')">
-    <img class="thumb" src="https://img.youtube.com/vi/bRQjhxXNyr4/mqdefault.jpg">
-    <div class="text">
-      <div class="title">夜の果て</div>
-      <div class="artist">ﾀﾗﾁｵ</div>
-    </div>
-  </div>
-  <div>
-    <span class="icon" onclick="moveUp(this)">⬆️</span>
-    <span class="icon" onclick="moveDown(this)">⬇️</span>
-    <span class="icon star" onclick="toggleFavorite(this)">☆</span>
-  </div>
-</div>
-
-<div class="link" data-id="k58Y3hvWVr4">
-  <div class="left" onclick="playVideo('k58Y3hvWVr4')">
-    <img class="thumb" src="https://img.youtube.com/vi/k58Y3hvWVr4/mqdefault.jpg">
-    <div class="text">
-      <div class="title">HappySideDishes</div>
-      <div class="artist">ﾀﾗﾁｵ</div>
-    </div>
-  </div>
-  <div>
-    <span class="icon" onclick="moveUp(this)">⬆️</span>
-    <span class="icon" onclick="moveDown(this)">⬇️</span>
-    <span class="icon star" onclick="toggleFavorite(this)">☆</span>
-  </div>
-</div>
-
-<div class="link" data-id="yc0DN1byizo">
-  <div class="left" onclick="playVideo('yc0DN1byizo')">
-    <img class="thumb" src="https://img.youtube.com/vi/yc0DN1byizo/mqdefault.jpg">
-    <div class="text">
-      <div class="title">いらないもの</div>
-      <div class="artist">伊東歌詞太郎×ﾀﾗﾁｵ</div>
-    </div>
-  </div>
-  <div>
-    <span class="icon" onclick="moveUp(this)">⬆️</span>
-    <span class="icon" onclick="moveDown(this)">⬇️</span>
-    <span class="icon star" onclick="toggleFavorite(this)">☆</span>
-  </div>
-</div>
-
-<!-- プレイヤー -->
 <div id="playerBox">
   <button onclick="closePlayer()">✕</button>
   <iframe id="player" width="100%" height="200"></iframe>
 </div>
 
 <script>
-// 再生
-function playVideo(id) {
-  document.getElementById("playerBox").style.display = "block";
-  document.getElementById("player").src =
-    "https://www.youtube.com/embed/" + id + "?autoplay=1";
-}
-
-// 閉じる
-function closePlayer() {
-  document.getElementById("playerBox").style.display = "none";
-  document.getElementById("player").src = "";
-}
-
-// 並び替え
-function moveUp(el) {
-  const item = el.closest(".link");
-  if (item.previousElementSibling) {
-    item.parentNode.insertBefore(item, item.previousElementSibling);
-  }
-}
-
-function moveDown(el) {
-  const item = el.closest(".link");
-  if (item.nextElementSibling) {
-    item.parentNode.insertBefore(item.nextElementSibling, item);
-  }
-}
-
-// お気に入り
-function toggleFavorite(star) {
-  const item = star.closest(".link");
-  const id = item.dataset.id;
-  let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-
-  if (favorites.includes(id)) {
-    favorites = favorites.filter(f => f !== id);
-    star.textContent = "☆";
-  } else {
-    favorites.push(id);
-    star.textContent = "★";
-  }
-
-  localStorage.setItem("favorites", JSON.stringify(favorites));
-  renderFavorites();
-}
-
-// 表示
-function renderFavorites() {
-  const favBox = document.getElementById("favorites");
-  favBox.innerHTML = "";
-
-  const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-
-  document.querySelectorAll(".link").forEach(item => {
-    const id = item.dataset.id;
-    const star = item.querySelector(".star");
-
-    if (favorites.includes(id)) {
-      star.textContent = "★";
-      const clone = item.cloneNode(true);
-      favBox.appendChild(clone);
-    } else {
-      star.textContent = "☆";
-    }
-  });
-}
-
-renderFavorites();
-</script>
-
-</body>
-</html>
+let songs = JSON.parse(localStorage.getItem("songs")) || [
+  {id:"bRQjhxXNyr4", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
+  {id:"k58Y3hvWVr4", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
+  {id:"yc0DN1byizo", title:"いらないもの", artist:"伊東歌
