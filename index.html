@@ -115,13 +115,16 @@ body {
 </div>
 
 <script>
+// 曲リスト（typeでYouTubeかNicoを指定）
 let songs = [
-  {id:"bRQjhxXNyr4", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
-  {id:"k58Y3hvWVr4", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
-  {id:"yc0DN1byizo", title:"いらないもの", artist:"伊東歌詞太郎×ﾀﾗﾁｵ"}
+  {id:"bRQjhxXNyr4", type:"youtube", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
+  {id:"k58Y3hvWVr4", type:"youtube", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
+  {id:"yc0DN1byizo", type:"youtube", title:"いらないもの", artist:"伊東歌詞太郎×ﾀﾗﾁｵ"},
+  {id:"sm42423338", type:"niconico", title:"祝福", artist:"NORISTRY×ﾀﾗﾁｵ×もるでお"}
 ];
 
 let currentId = null;
+let currentType = null;
 let isPlaying = false;
 let progress = 0;
 let interval = null;
@@ -130,33 +133,41 @@ function render() {
   const list = document.getElementById("list");
   list.innerHTML = "";
   songs.forEach(song => {
+    let thumbUrl = song.type === "youtube" 
+      ? "https://img.youtube.com/vi/" + song.id + "/mqdefault.jpg"
+      : "https://nicovideo-thumbnail.api.nlxapp.com/thumb/" + song.id; // 仮のサムネ
     list.innerHTML += `
-    <div class="link" data-id="${song.id}">
+    <div class="link" data-id="${song.id}" data-type="${song.type}">
       <div class="left">
-        <img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">
+        <img class="thumb" src="${thumbUrl}">
         <div>
           <div>${song.title}</div>
           <div style="font-size:10px">${song.artist}</div>
         </div>
       </div>
-      <div class="icon" onclick="playSong('${song.id}')">▶</div>
+      <div class="icon" onclick="playSong('${song.id}','${song.type}')">▶</div>
     </div>`;
   });
 }
 
-function playSong(id) {
+function playSong(id, type) {
   const song = songs.find(s => s.id === id);
   document.getElementById("playerBar").style.display = "block";
 
-  document.getElementById("player").src =
-    "https://www.youtube.com/embed/" + id + "?autoplay=1";
+  const player = document.getElementById("player");
+  if(type === "youtube"){
+    player.src = "https://www.youtube.com/embed/" + id + "?autoplay=1";
+  } else if(type === "niconico"){
+    player.src = "https://embed.nicovideo.jp/watch/" + id;
+  }
 
-  document.getElementById("pThumb").src =
-    "https://img.youtube.com/vi/" + id + "/mqdefault.jpg";
+  document.getElementById("pThumb").src = 
+    type === "youtube" ? "https://img.youtube.com/vi/" + id + "/mqdefault.jpg" : ""; 
   document.getElementById("pTitle").textContent = song.title;
   document.getElementById("pArtist").textContent = song.artist;
 
   currentId = id;
+  currentType = type;
   isPlaying = true;
 
   document.querySelectorAll(".link").forEach(el => el.classList.remove("active"));
@@ -174,7 +185,11 @@ function togglePlay() {
     isPlaying = false;
     clearInterval(interval);
   } else {
-    player.src = "https://www.youtube.com/embed/" + currentId + "?autoplay=1";
+    if(currentType === "youtube") {
+      player.src = "https://www.youtube.com/embed/" + currentId + "?autoplay=1";
+    } else if(currentType === "niconico") {
+      player.src = "https://embed.nicovideo.jp/watch/" + currentId;
+    }
     isPlaying = true;
     startProgress();
   }
