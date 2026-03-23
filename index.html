@@ -85,15 +85,13 @@ body {
 }
 .play-btn:hover { background:red; }
 
-/* ⭐お気に入り */
+/* ⭐ */
 .fav-btn {
   margin-left:6px;
   font-size:16px;
   cursor:pointer;
 }
-.fav-btn.active {
-  color:gold;
-}
+.fav-btn.active { color:gold; }
 
 /* プレイヤー */
 #playerBox {
@@ -108,6 +106,16 @@ body {
   overflow:hidden;
   display:none;
 }
+
+/* 曲情報 */
+#nowPlaying {
+  padding:6px;
+  font-size:12px;
+  text-align:center;
+  background:#111;
+  color:#fff;
+}
+
 #progressBar { height:6px; background:#ccc; }
 #progress { height:100%; width:0; background:red; }
 </style>
@@ -129,7 +137,11 @@ body {
 <div id="list"></div>
 
 <div id="playerBox">
-  <div id="player"></div>
+  <div id="nowPlaying">再生中：---</div>
+
+  <div id="ytPlayer"></div>
+  <iframe id="nicoPlayer" style="display:none;" width="100%" height="200"></iframe>
+
   <div id="progressBar"><div id="progress"></div></div>
 </div>
 
@@ -151,111 +163,13 @@ let favorites = JSON.parse(localStorage.getItem("favorites")||"[]");
 let currentIndex=null, isPlaying=false, player;
 
 function onYouTubeIframeAPIReady(){
-  player=new YT.Player('player',{events:{onStateChange:e=>{if(e.data===0)nextSong();}}});
+  player=new YT.Player('ytPlayer',{
+    height:'200',
+    width:'100%',
+    events:{ onStateChange:e=>{ if(e.data===0) nextSong(); }}
+  });
 }
 
 function render(){
   const list=document.getElementById("list");
-  list.innerHTML="";
-
-  songs.forEach((s,i)=>{
-    let thumb = s.type==="youtube"
-      ? `<img class="thumb" src="https://img.youtube.com/vi/${s.id}/mqdefault.jpg">`
-      : `<div class="thumb">nico</div>`;
-
-    let icon = (i===currentIndex && isPlaying) ? "⏸" : "▶";
-    let favClass = favorites.includes(s.id) ? "active" : "";
-
-    list.innerHTML+=`
-    <div class="link ${i===currentIndex?'active':''}">
-      <div class="left">
-        ${thumb}
-        <div>
-          <div>${s.title}</div>
-          <div style="font-size:10px">${s.artist}</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;">
-        <div class="play-btn" onclick="togglePlay(${i})">${icon}</div>
-        <div class="fav-btn ${favClass}" onclick="toggleFavorite('${s.id}')">⭐</div>
-      </div>
-    </div>`;
-  });
-}
-
-function toggleFavorite(id){
-  if(favorites.includes(id)){
-    favorites = favorites.filter(f=>f!==id);
-  }else{
-    favorites.push(id);
-  }
-  localStorage.setItem("favorites",JSON.stringify(favorites));
-  render();
-}
-
-function togglePlay(i){
-  if(currentIndex===i){
-    if(isPlaying){ player.pauseVideo(); isPlaying=false;}
-    else{ player.playVideo(); isPlaying=true;}
-  }else playSong(i);
-  render();
-}
-
-function playSong(i){
-  currentIndex=i;
-  isPlaying=true;
-  document.getElementById("playerBox").style.display="block";
-  let s=songs[i];
-
-  if(s.type==="youtube") player.loadVideoById(s.id);
-  else document.getElementById("player").innerHTML=
-    `<iframe src="https://ext.nicovideo.jp/thumb_watch/${s.id}" width="100%" height="200"></iframe>`;
-
-  render();
-}
-
-function nextSong(){
-  if(currentIndex===null)return;
-  let next=(currentIndex+1)%songs.length;
-  playSong(next);
-}
-
-function switchMenu(type,e){
-  document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
-  e.target.classList.add("active");
-
-  if(type==="all") songs=[...allSongs];
-  if(type==="youtube") songs=allSongs.filter(s=>s.type==="youtube");
-  if(type==="niconico") songs=allSongs.filter(s=>s.type==="niconico");
-  if(type==="favorites") songs=allSongs.filter(s=>favorites.includes(s.id));
-
-  populateFilter();
-  render();
-}
-
-function populateFilter(){
-  let select=document.getElementById("filter");
-  select.innerHTML='<option value="all">All</option>';
-  let set=new Set();
-  songs.forEach(s=>set.add(s.artist));
-  set.forEach(a=>{
-    let opt=document.createElement("option");
-    opt.value=a;
-    opt.textContent=a;
-    select.appendChild(opt);
-  });
-}
-
-function filterSongs(){
-  let val=document.getElementById("filter").value;
-  if(val==="all") return render();
-  songs = allSongs.filter(s=>s.artist===val);
-  render();
-}
-
-populateFilter();
-render();
-
-</script>
-</body>
-</html>
+  list.innerHTML="
