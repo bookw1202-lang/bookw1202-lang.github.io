@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Songs</title>
-
 <style>
 body {
   background: url("https://us.images.westend61.de/0001937078pw/a-bustling-nightclub-scene-illuminated-by-a-spectacular-light-show-with-vivid-red-hues-and-beams-shining-down-ADSF52712.jpg") no-repeat center center fixed;
@@ -19,17 +18,19 @@ body {
 #menu {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin: 10px 0;
+  gap: 6px;
 }
 .menu-btn {
-  margin: 5px;
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
   background: rgba(0,0,0,0.6);
   color: #fff;
-  transition: 0.2s;
+  font-size:14px;
+  transition:0.2s;
+  white-space: nowrap;
 }
 .menu-btn.active {
   background: red;
@@ -58,52 +59,31 @@ body {
 }
 .link:hover { transform: scale(1.02); }
 
-.left { display: flex; align-items: center; }
-
+.left { display:flex; align-items:center; }
 .thumb {
-  width: 60px;
-  height: 60px;
-  margin-right: 12px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 2px solid #ccc;
+  width:60px; height:60px; margin-right:12px;
+  border-radius:12px; object-fit:cover; border:2px solid #ccc;
+  display:flex; align-items:center; justify-content:center;
+  background:#666; color:#000; font-size:12px;
 }
-
-.icon {
-  font-size: 16px;
-  cursor: pointer;
-  margin-left: 6px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-}
-.icon:hover { background: #444; }
-.icon.fav { background: #ccc; color:#000; }
+.icon { font-size:16px; cursor:pointer; margin-left:6px; padding:4px 6px; border-radius:6px; transition:0.2s; display:flex; align-items:center; }
+.icon:hover { background:#444; }
+.icon.fav { background:#ccc; color:#000; }
 .icon.fav.active { background: gold; color:#000; }
 
 #playerBox {
   position: fixed;
-  bottom: 10px;
-  left: 50%;
+  bottom:10px; left:50%;
   transform: translateX(-50%);
-  width: 90%;
-  max-width: 360px;
+  width:90%; max-width:360px;
   background: rgba(255,255,255,0.95);
-  border: 3px solid red;
-  border-radius: 16px;
+  border: 3px solid red; border-radius:16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.7);
-  display: none;
-  overflow: hidden;
-  text-align: center;
+  display: none; overflow:hidden; text-align:center;
 }
-
 #player { width:100%; height:200px; border:none; border-radius:16px 16px 0 0; }
 #progressBar { width:95%; height:8px; background:#ccc; margin:8px auto; border-radius:4px; overflow:hidden; }
 #progress { width:0%; height:100%; background:red; transition:width 0.1s linear; border-radius:4px; }
-
-.icon img { width:24px; height:24px; }
 
 @media(max-width:500px){
   .left { flex-direction: column; align-items:flex-start; }
@@ -114,14 +94,13 @@ body {
 </style>
 </head>
 <body>
-
 <h2 style="text-align:center; color:#fff; text-shadow:1px 1px 3px #000;">Songs</h2>
 
 <div id="menu">
   <div class="menu-btn active" onclick="switchMenu('all')">All Songs</div>
-  <div class="menu-btn" onclick="switchMenu('favorites')">⭐ Favorites</div>
   <div class="menu-btn" onclick="switchMenu('youtube')">YouTube</div>
   <div class="menu-btn" onclick="switchMenu('niconico')">niconico</div>
+  <div class="menu-btn" onclick="switchMenu('favorites')">⭐ お気に入り</div>
 </div>
 
 <select id="artistFilter" onchange="filterByArtist()">
@@ -137,63 +116,50 @@ body {
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-let player;
-let progressInterval;
-let songs = [
-  {id:"bRQjhxXNyr4", type:"youtube", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
-  {id:"k58Y3hvWVr4", type:"youtube", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
-  {id:"yc0DN1byizo", type:"youtube", title:"いらないもの", artist:"伊東歌詞太郎×ﾀﾗﾁｵ"},
-  {id:"sm42423338", type:"niconico", title:"祝福", artist:"noristry×ﾀﾗﾁｵ×もるでお", url:"https://www.nicovideo.jp/watch/sm42423338?ref=androidapp_other", duration:200},
-  {id:"TFcOOzbyy9Y", type:"youtube", title:"勿忘", artist:"あやん×ﾀﾗﾁｵ"},
-  {id:"HoD2SAGPHb8", type:"youtube", title:"点描の唄", artist:"あやん×ﾀﾗﾁｵ"}
+let player; let progressInterval;
+let songs=[
+{id:"bRQjhxXNyr4", type:"youtube", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
+{id:"k58Y3hvWVr4", type:"youtube", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
+{id:"yc0DN1byizo", type:"youtube", title:"いらないもの", artist:"伊東歌詞太郎×ﾀﾗﾁｵ"},
+{id:"sm42423338", type:"niconico", title:"祝福", artist:"noristry×ﾀﾗﾁｵ×もるでお", url:"https://www.nicovideo.jp/watch/sm42423338?ref=androidapp_other", duration:200},
+{id:"TFcOOzbyy9Y", type:"youtube", title:"勿忘", artist:"あやん×ﾀﾗﾁｵ"},
+{id:"HoD2SAGPHb8", type:"youtube", title:"点描の唄", artist:"あやん×ﾀﾗﾁｵ"}
 ];
-let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-let currentMenu = 'all';
-let currentFilter = 'all';
+let favorites = JSON.parse(localStorage.getItem("favorites")||"[]");
+let currentMenu='all', currentFilter='all';
 
-// YouTube API準備
-function onYouTubeIframeAPIReady(){ player = new YT.Player('playerContainer',{height:'200',width:'100%',events:{onReady:onPlayerReady}});}
+function onYouTubeIframeAPIReady(){ player=new YT.Player('playerContainer',{height:'200',width:'100%',events:{onReady:onPlayerReady}});}
 function onPlayerReady(event){}
 
-// プルダウン初期化
 function populateArtistFilter(){
-  const select = document.getElementById("artistFilter");
-  select.innerHTML = '<option value="all">All Artists</option>';
-  let options = new Set();
-  let listToUse = currentMenu==='favorites'? songs.filter(s=>favorites.includes(s.id)) : songs;
-  listToUse.forEach(s => options.add(`${s.type} | ${s.artist}`));
+  const select=document.getElementById("artistFilter");
+  select.innerHTML='<option value="all">All Artists</option>';
+  let options=new Set();
+  let listToUse=currentMenu==='favorites'?songs.filter(s=>favorites.includes(s.id)):songs;
+  listToUse.forEach(s=>options.add(`${s.type} | ${s.artist}`));
   options.forEach(o=>{const opt=document.createElement("option");opt.value=o;opt.textContent=o;select.appendChild(opt);});
 }
 
-// 曲描画
 function render(displaySongs=null){
-  const list = document.getElementById("list"); list.innerHTML="";
-  let showSongs = displaySongs || filterByMenu();
+  const list=document.getElementById("list"); list.innerHTML="";
+  let showSongs=displaySongs||filterByMenu();
   showSongs.forEach(song=>{
-    let isFav = favorites.includes(song.id);
+    let isFav=favorites.includes(song.id);
     let thumbHtml = song.type==='youtube'? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
-                   : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">niconico</div>`;
-    let playIcon = song.type==='youtube'
-      ? `<div class="icon" onclick="playSong('${song.id}','youtube')"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg"></div>
-         <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg"></div>`
-      : `<div class="icon" onclick="playSong('${song.id}','niconico',${song.duration||200})"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Niconico_icon.png"></div>
-         <div class="icon" onclick="window.open('${song.url}','_blank')"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Niconico_icon.png"></div>`;
+                   : `<div class="thumb">nico</div>`;
+    let playIcon = `<div class="icon" onclick="playSong('${song.id}','${song.type}',${song.duration||200})">▶</div>`;
     let favIcon = `<div class="icon fav ${isFav?'active':''}" onclick="toggleFavorite('${song.id}')">⭐</div>`;
     list.innerHTML += `<div class="link"><div class="left">${thumbHtml}<div><div>${song.title}</div><div style="font-size:10px">${song.artist}</div></div></div>${playIcon}${favIcon}</div>`;
   });
 }
 
-// メニュー切替
 function switchMenu(menu){
   currentMenu=menu;
   document.querySelectorAll('.menu-btn').forEach(btn=>btn.classList.remove('active'));
   document.querySelector(`.menu-btn[onclick="switchMenu('${menu}')"]`).classList.add('active');
-  currentFilter='all';
-  populateArtistFilter();
-  render();
+  currentFilter='all'; populateArtistFilter(); render();
 }
 
-// メニュー別フィルター
 function filterByMenu(){
   let listToUse;
   switch(currentMenu){
@@ -203,58 +169,25 @@ function filterByMenu(){
     case 'niconico': listToUse=songs.filter(s=>s.type==='niconico'); break;
   }
   if(currentFilter!=='all'){
-    const [type,artist] = currentFilter.split(" | ");
-    listToUse = listToUse.filter(s=>s.type===type && s.artist===artist);
+    const [type,artist]=currentFilter.split(" | ");
+    listToUse=listToUse.filter(s=>s.type===type && s.artist===artist);
   }
   return listToUse;
 }
 
-// 再生
 function playSong(id,type,duration){
   clearInterval(progressInterval);
-  const playerBox = document.getElementById("playerBox");
-  const progress = document.getElementById("progress");
-  progress.style.width="0%";
-  playerBox.style.display="block";
-  if(type==='youtube'){
-    player.loadVideoById(id);
-    progressInterval=setInterval(()=>{
-      if(player && player.getDuration){
-        let pct = (player.getCurrentTime()/player.getDuration())*100;
-        document.getElementById("progress").style.width=pct+"%";
-      }
-    },200);
-  } else if(type==='niconico'){
-    document.getElementById('playerContainer').innerHTML=`<iframe src="https://ext.nicovideo.jp/thumb_watch/${id}" width="100%" height="200" frameborder="0" allowfullscreen></iframe>`;
-    let total = duration || 200;
-    let startTime = Date.now();
-    progressInterval = setInterval(()=>{
-      let elapsed = (Date.now()-startTime)/1000;
-      document.getElementById("progress").style.width = Math.min((elapsed/total)*100,100)+"%";
-      if(elapsed>=total) clearInterval(progressInterval);
-    },200);
-  }
+  const playerBox=document.getElementById("playerBox");
+  const progress=document.getElementById("progress");
+  progress.style.width="0%"; playerBox.style.display="block";
+  if(type==='youtube'){ player.loadVideoById(id); progressInterval=setInterval(()=>{ if(player.getCurrentTime && player.getDuration){ let pct=(player.getCurrentTime()/player.getDuration())*100; progress.style.width=pct+"%"; } },200);}
+  else{ document.getElementById('playerContainer').innerHTML=`<iframe src="https://ext.nicovideo.jp/thumb_watch/${id}" width="100%" height="200" frameborder="0" allowfullscreen></iframe>`; let total=duration||200; let startTime=Date.now(); progressInterval=setInterval(()=>{ let elapsed=(Date.now()-startTime)/1000; progress.style.width=Math.min((elapsed/total)*100,100)+"%"; if(elapsed>=total) clearInterval(progressInterval); },200);}
 }
 
-// お気に入り
-function toggleFavorite(id){
-  if(favorites.includes(id)) favorites=favorites.filter(f=>f!==id);
-  else favorites.push(id);
-  localStorage.setItem("favorites",JSON.stringify(favorites));
-  populateArtistFilter();
-  render();
-}
+function toggleFavorite(id){ if(favorites.includes(id)) favorites=favorites.filter(f=>f!==id); else favorites.push(id); localStorage.setItem("favorites",JSON.stringify(favorites)); populateArtistFilter(); render();}
+function filterByArtist(){ currentFilter=document.getElementById("artistFilter").value; render(); }
 
-// プルダウン検索
-function filterByArtist(){
-  currentFilter=document.getElementById("artistFilter").value;
-  render();
-}
-
-// 初期化
-populateArtistFilter();
-render();
+populateArtistFilter(); render();
 </script>
-
 </body>
 </html>
