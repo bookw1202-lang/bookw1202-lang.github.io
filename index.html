@@ -29,6 +29,14 @@ body {
 }
 .menu-btn.active { background:red; }
 
+/* プルダウン */
+#filter {
+  display:block;
+  margin:0 auto 10px;
+  padding:6px;
+  border-radius:6px;
+}
+
 /* 曲 */
 .link {
   display:flex;
@@ -44,7 +52,6 @@ body {
   border:2px solid red;
 }
 
-/* 左 */
 .left {
   display:flex;
   align-items:center;
@@ -113,6 +120,10 @@ iframe {
   <div class="menu-btn" onclick="switchMenu('favorites',event)">⭐ お気に入り</div>
 </div>
 
+<select id="filter" onchange="filterSongs()">
+  <option value="all">All Artists</option>
+</select>
+
 <div id="list"></div>
 
 <div id="playerBox">
@@ -135,6 +146,23 @@ let songs=[...allSongs];
 let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
 let currentIndex=null;
 
+/* プルダウン生成 */
+function populateFilter(){
+  let select=document.getElementById("filter");
+  select.innerHTML='<option value="all">All Artists</option>';
+
+  let set=new Set();
+  songs.forEach(s=>set.add(s.artist));
+
+  set.forEach(a=>{
+    let opt=document.createElement("option");
+    opt.value=a;
+    opt.textContent=a;
+    select.appendChild(opt);
+  });
+}
+
+/* 描画 */
 function render(){
   let list=document.getElementById("list");
   list.innerHTML="";
@@ -163,6 +191,7 @@ function render(){
   });
 }
 
+/* 再生 */
 function play(i){
   currentIndex=i;
   let s=songs[i];
@@ -180,6 +209,7 @@ function play(i){
   render();
 }
 
+/* お気に入り */
 function toggleFav(id){
   if(favorites.includes(id)){
     favorites=favorites.filter(f=>f!==id);
@@ -190,6 +220,7 @@ function toggleFav(id){
   render();
 }
 
+/* メニュー */
 function switchMenu(type,e){
   document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
   e.target.classList.add("active");
@@ -199,9 +230,20 @@ function switchMenu(type,e){
   if(type==="niconico") songs=allSongs.filter(s=>s.type==="niconico");
   if(type==="favorites") songs=allSongs.filter(s=>favorites.includes(s.id));
 
+  populateFilter();
   render();
 }
 
+/* フィルター */
+function filterSongs(){
+  let val=document.getElementById("filter").value;
+  if(val==="all") songs=[...allSongs];
+  else songs=allSongs.filter(s=>s.artist===val);
+  render();
+}
+
+/* 初期化 */
+populateFilter();
 render();
 
 </script>
