@@ -34,7 +34,6 @@ body {
   display:block;
   margin:0 auto 10px;
   padding:6px;
-  border-radius:6px;
 }
 
 /* 曲 */
@@ -48,9 +47,7 @@ body {
   padding:8px;
   border-radius:12px;
 }
-.link.active {
-  border:2px solid red;
-}
+.link.active { border:2px solid red; }
 
 .left {
   display:flex;
@@ -77,6 +74,16 @@ body {
   display:flex;
   align-items:center;
   justify-content:center;
+  cursor:pointer;
+}
+
+/* NICOボタン */
+.nico-btn {
+  padding:4px 6px;
+  background:#ccc;
+  color:#000;
+  border-radius:6px;
+  font-size:10px;
   cursor:pointer;
 }
 
@@ -146,7 +153,7 @@ let songs=[...allSongs];
 let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
 let currentIndex=null;
 
-/* プルダウン生成 */
+/* プルダウン */
 function populateFilter(){
   let select=document.getElementById("filter");
   select.innerHTML='<option value="all">All Artists</option>';
@@ -174,6 +181,10 @@ function render(){
 
     let fav = favorites.includes(s.id)?"active":"";
 
+    let button = s.type==="youtube"
+      ? `<div class="play-btn" onclick="play(${i})">▶</div>`
+      : `<div class="nico-btn" onclick="play(${i})">NICO</div>`;
+
     list.innerHTML+=`
     <div class="link ${i===currentIndex?'active':''}">
       <div class="left">
@@ -184,32 +195,34 @@ function render(){
         </div>
       </div>
       <div style="display:flex;">
-        <div class="play-btn" onclick="play(${i})">▶</div>
+        ${button}
         <div class="fav-btn ${fav}" onclick="toggleFav('${s.id}')">⭐</div>
       </div>
     </div>`;
   });
 }
 
-/* 再生 */
+/* 再生 or 外部遷移 */
 function play(i){
-  currentIndex=i;
   let s=songs[i];
+
+  if(s.type==="niconico"){
+    window.open(`https://www.nicovideo.jp/watch/${s.id}`, "_blank");
+    return;
+  }
+
+  currentIndex=i;
 
   let player=document.getElementById("player");
   document.getElementById("playerBox").style.display="block";
   document.getElementById("nowPlaying").innerText="再生中："+s.title+" / "+s.artist;
 
-  if(s.type==="youtube"){
-    player.src=`https://www.youtube.com/embed/${s.id}?autoplay=1`;
-  }else{
-    player.src=`https://ext.nicovideo.jp/thumb_watch/${s.id}`;
-  }
+  player.src=`https://www.youtube.com/embed/${s.id}?autoplay=1`;
 
   render();
 }
 
-/* お気に入り */
+/* ⭐ */
 function toggleFav(id){
   if(favorites.includes(id)){
     favorites=favorites.filter(f=>f!==id);
@@ -242,7 +255,6 @@ function filterSongs(){
   render();
 }
 
-/* 初期化 */
 populateFilter();
 render();
 
