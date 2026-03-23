@@ -7,109 +7,118 @@
 
 <style>
 body {
-  background: url("https://us.images.westend61.de/0001937078pw/a-bustling-nightclub-scene-illuminated-by-a-spectacular-light-show-with-vivid-red-hues-and-beams-shining-down-ADSF52712.jpg") no-repeat center center fixed;
+  background: url("https://us.images.westend61.de/0001937078pw/a-bustling-nightclub-scene-illuminated-by-a-spectacular-light-show-with-vivid-red-hues-and-beams-shining-down-ADSF52712.jpg") no-repeat center;
   background-size: cover;
-  color: red;
-  font-family: sans-serif;
-  margin: 0;
-  padding-bottom: 260px;
+  margin:0;
+  font-family:sans-serif;
 }
 
+/* メニュー */
 #menu {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin: 10px;
+  display:flex;
+  justify-content:center;
+  flex-wrap:nowrap;
+  gap:6px;
+  padding:10px;
 }
 .menu-btn {
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  cursor: pointer;
-  font-size: 13px;
+  padding:5px 8px;
+  font-size:12px;
+  border-radius:8px;
+  background:#111;
+  color:#fff;
+  white-space:nowrap;
+  cursor:pointer;
 }
-.menu-btn.active { background: red; }
+.menu-btn.active { background:red; }
 
+/* プルダウン */
+#filter {
+  display:block;
+  margin:0 auto 10px;
+  padding:6px;
+  border-radius:6px;
+}
+
+/* 曲 */
 .link {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255,255,255,0.9);
-  margin: 8px;
-  padding: 8px;
-  border-radius: 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fff;
+  margin:8px;
+  padding:8px;
+  border-radius:12px;
 }
 .link.active {
-  border: 2px solid red;
-  box-shadow: 0 0 10px red;
+  border:2px solid red;
+  box-shadow:0 0 8px red;
 }
 
 .left {
-  display: flex;
-  align-items: center;
-  flex: 1;
+  display:flex;
+  align-items:center;
+  flex:1;
 }
 
 .thumb {
-  width: 55px;
-  height: 55px;
-  border-radius: 10px;
-  margin-right: 10px;
+  width:50px;
+  height:50px;
+  margin-right:10px;
+  border-radius:10px;
+  background:#666;
   display:flex;
   align-items:center;
   justify-content:center;
-  background:#666;
   color:#000;
 }
 
+/* ▶丸 */
 .play-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #111;
-  color: #fff;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:#111;
+  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
   cursor:pointer;
 }
-
 .play-btn:hover { background:red; }
 
+/* プレイヤー */
 #playerBox {
-  position: fixed;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 360px;
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
+  position:fixed;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:360px;
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
   display:none;
 }
-
-#progressBar {
-  height:6px;
-  background:#ccc;
-}
-#progress {
-  height:100%;
-  width:0%;
-  background:red;
-}
+#progressBar { height:6px; background:#ccc; }
+#progress { height:100%; width:0; background:red; }
 </style>
 </head>
 
 <body>
 
+<!-- メニュー -->
 <div id="menu">
-  <div class="menu-btn active" onclick="switchMenu('all')">All Songs</div>
-  <div class="menu-btn" onclick="switchMenu('youtube')">YouTube</div>
-  <div class="menu-btn" onclick="switchMenu('niconico')">niconico</div>
-  <div class="menu-btn" onclick="switchMenu('favorites')">⭐ お気に入り</div>
+  <div class="menu-btn active" onclick="switchMenu('all',event)">All Songs</div>
+  <div class="menu-btn" onclick="switchMenu('youtube',event)">YouTube</div>
+  <div class="menu-btn" onclick="switchMenu('niconico',event)">niconico</div>
+  <div class="menu-btn" onclick="switchMenu('favorites',event)">⭐ お気に入り</div>
 </div>
+
+<!-- プルダウン -->
+<select id="filter" onchange="filterSongs()">
+  <option value="all">All</option>
+</select>
 
 <div id="list"></div>
 
@@ -121,7 +130,7 @@ body {
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
 
-let songs = [
+let allSongs = [
 {id:"bRQjhxXNyr4", type:"youtube", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
 {id:"k58Y3hvWVr4", type:"youtube", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
 {id:"yc0DN1byizo", type:"youtube", title:"いらないもの", artist:"伊東歌詞太郎×ﾀﾗﾁｵ"},
@@ -130,107 +139,96 @@ let songs = [
 {id:"HoD2SAGPHb8", type:"youtube", title:"点描の唄", artist:"あやん×ﾀﾗﾁｵ"}
 ];
 
-let currentIndex = null;
-let currentPlaying = null;
-let isPlaying = false;
-let player;
+let songs = [...allSongs];
+let currentIndex=null, isPlaying=false, player;
 
 function onYouTubeIframeAPIReady(){
-  player = new YT.Player('player',{
-    height:'200',
-    width:'100%',
-    events:{
-      'onStateChange': onPlayerStateChange
-    }
-  });
-}
-
-function onPlayerStateChange(event){
-  if(event.data === YT.PlayerState.ENDED){
-    nextSong(); // 自動再生🔥
-  }
+  player=new YT.Player('player',{events:{onStateChange:e=>{if(e.data===0)nextSong();}}});
 }
 
 function render(){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  songs.forEach((song,index)=>{
-    let thumb = song.type==="youtube"
-      ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  songs.forEach((s,i)=>{
+    let thumb = s.type==="youtube"
+      ? `<img class="thumb" src="https://img.youtube.com/vi/${s.id}/mqdefault.jpg">`
       : `<div class="thumb">nico</div>`;
 
-    let isActive = currentPlaying === song.id;
+    let icon = (i===currentIndex && isPlaying) ? "⏸" : "▶";
 
-    let btnIcon = (isActive && isPlaying) ? "⏸" : "▶";
-
-    list.innerHTML += `
-    <div class="link ${isActive?'active':''}">
+    list.innerHTML+=`
+    <div class="link ${i===currentIndex?'active':''}">
       <div class="left">
         ${thumb}
         <div>
-          <div>${song.title}</div>
-          <div style="font-size:10px">${song.artist}</div>
+          <div>${s.title}</div>
+          <div style="font-size:10px">${s.artist}</div>
         </div>
       </div>
-      <div class="play-btn" onclick="togglePlay(${index})">${btnIcon}</div>
+      <div class="play-btn" onclick="togglePlay(${i})">${icon}</div>
     </div>`;
   });
 }
 
-function togglePlay(index){
-  let song = songs[index];
-
-  if(currentIndex === index){
-    if(isPlaying){
-      player.pauseVideo();
-      isPlaying = false;
-    }else{
-      player.playVideo();
-      isPlaying = true;
-    }
-  }else{
-    playSong(index);
-  }
+function togglePlay(i){
+  if(currentIndex===i){
+    if(isPlaying){ player.pauseVideo(); isPlaying=false;}
+    else{ player.playVideo(); isPlaying=true;}
+  }else playSong(i);
   render();
 }
 
-function playSong(index){
-  currentIndex = index;
-  let song = songs[index];
-  currentPlaying = song.id;
-  isPlaying = true;
-
+function playSong(i){
+  currentIndex=i;
+  isPlaying=true;
   document.getElementById("playerBox").style.display="block";
+  let s=songs[i];
 
-  if(song.type==="youtube"){
-    player.loadVideoById(song.id);
-  }else{
-    document.getElementById("player").innerHTML =
-      `<iframe src="https://ext.nicovideo.jp/thumb_watch/${song.id}" width="100%" height="200"></iframe>`;
-  }
+  if(s.type==="youtube") player.loadVideoById(s.id);
+  else document.getElementById("player").innerHTML=
+    `<iframe src="https://ext.nicovideo.jp/thumb_watch/${s.id}" width="100%" height="200"></iframe>`;
 
   render();
 }
 
 function nextSong(){
-  if(currentIndex === null) return;
-  let next = currentIndex + 1;
-  if(next >= songs.length) next = 0;
+  if(currentIndex===null)return;
+  let next=(currentIndex+1)%songs.length;
   playSong(next);
 }
 
-function switchMenu(menu){
-  document.querySelectorAll('.menu-btn').forEach(btn=>btn.classList.remove('active'));
-  event.target.classList.add('active');
+function switchMenu(type,e){
+  document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
+  e.target.classList.add("active");
 
-  if(menu==="all") songs = songs;
-  if(menu==="youtube") songs = songs.filter(s=>s.type==="youtube");
-  if(menu==="niconico") songs = songs.filter(s=>s.type==="niconico");
+  if(type==="all") songs=[...allSongs];
+  if(type==="youtube") songs=allSongs.filter(s=>s.type==="youtube");
+  if(type==="niconico") songs=allSongs.filter(s=>s.type==="niconico");
 
+  populateFilter();
   render();
 }
 
+function populateFilter(){
+  let select=document.getElementById("filter");
+  select.innerHTML='<option value="all">All</option>';
+  let set=new Set();
+  songs.forEach(s=>set.add(s.artist));
+  set.forEach(a=>{
+    let opt=document.createElement("option");
+    opt.value=a;
+    opt.textContent=a;
+    select.appendChild(opt);
+  });
+}
+
+function filterSongs(){
+  let val=document.getElementById("filter").value;
+  songs = val==="all" ? [...allSongs] : allSongs.filter(s=>s.artist===val);
+  render();
+}
+
+populateFilter();
 render();
 
 </script>
