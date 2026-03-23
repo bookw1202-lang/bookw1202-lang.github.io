@@ -13,6 +13,26 @@ body{
   font-family:sans-serif;
 }
 
+/* 🔥ロゴ（メタル風） */
+#siteTitle{
+  text-align:center;
+  font-size:22px;
+  margin-top:12px;
+  margin-bottom:8px;
+  color:#fff;
+  font-weight:bold;
+  letter-spacing:2px;
+  font-family:Impact, sans-serif;
+
+  text-shadow:
+    0 0 5px #fff,
+    0 0 10px red,
+    0 0 20px red,
+    0 0 40px darkred;
+
+  transform:skew(-3deg);
+}
+
 /* メニュー */
 #menu{
   display:flex;
@@ -123,6 +143,9 @@ iframe{
 
 <body>
 
+<!-- 🔥タイトル -->
+<h1 id="siteTitle">ﾀﾗﾁｵ　楽曲リスト</h1>
+
 <div id="menu">
   <div class="menu-btn active" onclick="switchMenu('all',event)">All Songs</div>
   <div class="menu-btn" onclick="switchMenu('youtube',event)">YouTube</div>
@@ -143,7 +166,7 @@ iframe{
 
 <script>
 
-/* 🔥曲データ（全部入り） */
+/* 曲データ */
 let allSongs = [
 {id:"bRQjhxXNyr4",type:"youtube",title:"夜の果て",artist:"ﾀﾗﾁｵ"},
 {id:"k58Y3hvWVr4",type:"youtube",title:"HappySideDishes",artist:"ﾀﾗﾁｵ"},
@@ -179,7 +202,6 @@ let allSongs = [
 {id:"mkiBbkhVePw",type:"youtube",title:"アネイブラ",artist:"ﾀﾗﾁｵ"},
 {id:"OaBWDOgPeec",type:"youtube",title:"酔いどれ知らず",artist:"ﾀﾗﾁｵ"},
 
-/* 時間指定🔥 */
 {id:"K3O5-MJIgUk",type:"youtube",title:"AEONS GHEENA",artist:"ZEPPELID",start:177},
 {id:"K3O5-MJIgUk",type:"youtube",title:"EYKEY FRIENDS",artist:"ZEPPELID",start:391},
 {id:"K3O5-MJIgUk",type:"youtube",title:"LAST STANDING",artist:"ZEPPELID",start:590},
@@ -196,7 +218,6 @@ let songs=[...allSongs];
 let favorites=JSON.parse(localStorage.getItem("favorites")||"[]");
 let currentIndex=null;
 
-/* フィルター生成 */
 function populateFilter(){
   let select=document.getElementById("filter");
   select.innerHTML='<option value="all">All Artists</option>';
@@ -210,7 +231,6 @@ function populateFilter(){
   });
 }
 
-/* 描画 */
 function render(){
   let list=document.getElementById("list");
   list.innerHTML="";
@@ -243,7 +263,6 @@ function render(){
   });
 }
 
-/* 再生 */
 function play(i){
   let s=songs[i];
 
@@ -265,7 +284,6 @@ function play(i){
   render();
 }
 
-/* ⭐ */
 function toggleFav(id){
   if(favorites.includes(id)){
     favorites=favorites.filter(f=>f!==id);
@@ -276,7 +294,6 @@ function toggleFav(id){
   render();
 }
 
-/* メニュー */
 function switchMenu(type,e){
   document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
   e.target.classList.add("active");
@@ -290,7 +307,6 @@ function switchMenu(type,e){
   render();
 }
 
-/* フィルター */
 function filterSongs(){
   let val=document.getElementById("filter").value;
   if(val==="all") songs=[...allSongs];
