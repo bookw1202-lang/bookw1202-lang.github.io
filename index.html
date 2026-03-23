@@ -17,7 +17,6 @@ body {
 #menu {
   display:flex;
   justify-content:center;
-  flex-wrap:nowrap;
   gap:6px;
   padding:10px;
 }
@@ -27,7 +26,6 @@ body {
   border-radius:8px;
   background:#111;
   color:#fff;
-  white-space:nowrap;
   cursor:pointer;
 }
 .menu-btn.active { background:red; }
@@ -87,6 +85,16 @@ body {
 }
 .play-btn:hover { background:red; }
 
+/* ⭐お気に入り */
+.fav-btn {
+  margin-left:6px;
+  font-size:16px;
+  cursor:pointer;
+}
+.fav-btn.active {
+  color:gold;
+}
+
 /* プレイヤー */
 #playerBox {
   position:fixed;
@@ -107,7 +115,6 @@ body {
 
 <body>
 
-<!-- メニュー -->
 <div id="menu">
   <div class="menu-btn active" onclick="switchMenu('all',event)">All Songs</div>
   <div class="menu-btn" onclick="switchMenu('youtube',event)">YouTube</div>
@@ -115,7 +122,6 @@ body {
   <div class="menu-btn" onclick="switchMenu('favorites',event)">⭐ お気に入り</div>
 </div>
 
-<!-- プルダウン -->
 <select id="filter" onchange="filterSongs()">
   <option value="all">All</option>
 </select>
@@ -140,6 +146,8 @@ let allSongs = [
 ];
 
 let songs = [...allSongs];
+let favorites = JSON.parse(localStorage.getItem("favorites")||"[]");
+
 let currentIndex=null, isPlaying=false, player;
 
 function onYouTubeIframeAPIReady(){
@@ -149,12 +157,14 @@ function onYouTubeIframeAPIReady(){
 function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
+
   songs.forEach((s,i)=>{
     let thumb = s.type==="youtube"
       ? `<img class="thumb" src="https://img.youtube.com/vi/${s.id}/mqdefault.jpg">`
       : `<div class="thumb">nico</div>`;
 
     let icon = (i===currentIndex && isPlaying) ? "⏸" : "▶";
+    let favClass = favorites.includes(s.id) ? "active" : "";
 
     list.innerHTML+=`
     <div class="link ${i===currentIndex?'active':''}">
@@ -165,9 +175,22 @@ function render(){
           <div style="font-size:10px">${s.artist}</div>
         </div>
       </div>
-      <div class="play-btn" onclick="togglePlay(${i})">${icon}</div>
+      <div style="display:flex;align-items:center;">
+        <div class="play-btn" onclick="togglePlay(${i})">${icon}</div>
+        <div class="fav-btn ${favClass}" onclick="toggleFavorite('${s.id}')">⭐</div>
+      </div>
     </div>`;
   });
+}
+
+function toggleFavorite(id){
+  if(favorites.includes(id)){
+    favorites = favorites.filter(f=>f!==id);
+  }else{
+    favorites.push(id);
+  }
+  localStorage.setItem("favorites",JSON.stringify(favorites));
+  render();
 }
 
 function togglePlay(i){
@@ -204,6 +227,7 @@ function switchMenu(type,e){
   if(type==="all") songs=[...allSongs];
   if(type==="youtube") songs=allSongs.filter(s=>s.type==="youtube");
   if(type==="niconico") songs=allSongs.filter(s=>s.type==="niconico");
+  if(type==="favorites") songs=allSongs.filter(s=>favorites.includes(s.id));
 
   populateFilter();
   render();
@@ -224,7 +248,8 @@ function populateFilter(){
 
 function filterSongs(){
   let val=document.getElementById("filter").value;
-  songs = val==="all" ? [...allSongs] : allSongs.filter(s=>s.artist===val);
+  if(val==="all") return render();
+  songs = allSongs.filter(s=>s.artist===val);
   render();
 }
 
