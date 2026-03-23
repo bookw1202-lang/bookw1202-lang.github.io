@@ -12,17 +12,18 @@ body {
   color: red;
   font-family: sans-serif;
   margin: 0;
-  padding-bottom: 200px;
+  padding-bottom: 260px;
   backdrop-filter: blur(2px);
 }
 
 #menu {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   margin: 10px 0;
 }
 .menu-btn {
-  margin: 0 5px;
+  margin: 5px;
   padding: 6px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -35,7 +36,6 @@ body {
   color: #fff;
 }
 
-/* プルダウン */
 #artistFilter {
   display: block;
   margin: 0 auto 10px auto;
@@ -44,7 +44,6 @@ body {
   font-size: 14px;
 }
 
-/* 曲リスト */
 .link {
   display: flex;
   justify-content: space-between;
@@ -57,14 +56,9 @@ body {
   box-shadow: 0 2px 6px rgba(0,0,0,0.4);
   transition: 0.2s;
 }
-.link:hover {
-  transform: scale(1.02);
-}
+.link:hover { transform: scale(1.02); }
 
-.left {
-  display: flex;
-  align-items: center;
-}
+.left { display: flex; align-items: center; }
 
 .thumb {
   width: 60px;
@@ -81,147 +75,180 @@ body {
   margin-left: 6px;
   padding: 4px 6px;
   border-radius: 6px;
-  background: #222;
-  color: #fff;
   transition: 0.2s;
+  display: flex;
+  align-items: center;
 }
-.icon:hover {
-  background: #444;
-}
+.icon:hover { background: #444; }
+.icon.fav { background: #ccc; color:#000; }
+.icon.fav.active { background: gold; color:#000; }
 
-.icon.fav {
-  background: #ccc;
-  color: #000;
-}
-.icon.fav.active {
-  background: gold;
-  color: #000;
-}
-
-#player {
+#playerBox {
   position: fixed;
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 360px;
-  height: 200px;
-  display: none;
+  width: 90%;
+  max-width: 360px;
+  background: rgba(255,255,255,0.95);
   border: 3px solid red;
   border-radius: 16px;
-  overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+  display: none;
+  overflow: hidden;
+  text-align: center;
+}
+
+#player { width:100%; height:200px; border:none; border-radius:16px 16px 0 0; }
+#progressBar { width:95%; height:8px; background:#ccc; margin:8px auto; border-radius:4px; overflow:hidden; }
+#progress { width:0%; height:100%; background:red; transition:width 0.1s linear; border-radius:4px; }
+
+.icon img { width:24px; height:24px; }
+
+@media(max-width:500px){
+  .left { flex-direction: column; align-items:flex-start; }
+  .thumb { width:50px; height:50px; margin-bottom:6px; }
+  .icon { font-size:14px; padding:2px 4px; margin-left:4px; }
+  #player { height:180px; }
 }
 </style>
 </head>
-
 <body>
 
-<h2 style="text-align:center; color:#fff; text-shadow: 1px 1px 3px #000;">Songs</h2>
+<h2 style="text-align:center; color:#fff; text-shadow:1px 1px 3px #000;">Songs</h2>
 
-<!-- メニュー -->
 <div id="menu">
   <div class="menu-btn active" onclick="switchMenu('all')">All Songs</div>
   <div class="menu-btn" onclick="switchMenu('favorites')">⭐ Favorites</div>
+  <div class="menu-btn" onclick="switchMenu('youtube')">YouTube</div>
+  <div class="menu-btn" onclick="switchMenu('niconico')">niconico</div>
 </div>
 
-<!-- アーティスト検索 -->
 <select id="artistFilter" onchange="filterByArtist()">
   <option value="all">All Artists</option>
 </select>
 
 <div id="list"></div>
 
-<iframe id="player" width="360" height="200" style="display:none;" allow="autoplay" frameborder="0"></iframe>
+<div id="playerBox">
+  <div id="playerContainer"></div>
+  <div id="progressBar"><div id="progress"></div></div>
+</div>
 
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
-// 曲リスト
+let player;
+let progressInterval;
 let songs = [
   {id:"bRQjhxXNyr4", type:"youtube", title:"夜の果て", artist:"ﾀﾗﾁｵ"},
   {id:"k58Y3hvWVr4", type:"youtube", title:"HappySideDishes", artist:"ﾀﾗﾁｵ"},
   {id:"yc0DN1byizo", type:"youtube", title:"いらないもの", artist:"伊東歌詞太郎×ﾀﾗﾁｵ"},
-  {id:"sm42423338", type:"niconico", title:"祝福", artist:"NORISTRY×ﾀﾗﾁｵ×もるでお", url:"https://www.nicovideo.jp/watch/sm42423338?ref=androidapp_other"},
+  {id:"sm42423338", type:"niconico", title:"祝福", artist:"noristry×ﾀﾗﾁｵ×もるでお", url:"https://www.nicovideo.jp/watch/sm42423338?ref=androidapp_other", duration:200},
   {id:"TFcOOzbyy9Y", type:"youtube", title:"勿忘", artist:"あやん×ﾀﾗﾁｵ"},
   {id:"HoD2SAGPHb8", type:"youtube", title:"点描の唄", artist:"あやん×ﾀﾗﾁｵ"}
 ];
-
 let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
 let currentMenu = 'all';
+let currentFilter = 'all';
+
+// YouTube API準備
+function onYouTubeIframeAPIReady(){ player = new YT.Player('playerContainer',{height:'200',width:'100%',events:{onReady:onPlayerReady}});}
+function onPlayerReady(event){}
 
 // プルダウン初期化
-function populateArtistFilter() {
+function populateArtistFilter(){
   const select = document.getElementById("artistFilter");
-  let artists = [...new Set(songs.map(s => s.artist))];
-  artists.forEach(a => {
-    const opt = document.createElement("option");
-    opt.value = a;
-    opt.textContent = a;
-    select.appendChild(opt);
-  });
+  select.innerHTML = '<option value="all">All Artists</option>';
+  let options = new Set();
+  let listToUse = currentMenu==='favorites'? songs.filter(s=>favorites.includes(s.id)) : songs;
+  listToUse.forEach(s => options.add(`${s.type} | ${s.artist}`));
+  options.forEach(o=>{const opt=document.createElement("option");opt.value=o;opt.textContent=o;select.appendChild(opt);});
 }
 
-// 曲リスト描画
-function render(displaySongs = null) {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  let songsToShow = displaySongs || (currentMenu === 'all' ? songs : songs.filter(s => favorites.includes(s.id)));
-
-  songsToShow.forEach(song => {
+// 曲描画
+function render(displaySongs=null){
+  const list = document.getElementById("list"); list.innerHTML="";
+  let showSongs = displaySongs || filterByMenu();
+  showSongs.forEach(song=>{
     let isFav = favorites.includes(song.id);
-    let thumbHtml = song.type === "youtube"
-      ? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
-      : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">Nico</div>`;
-    
-    let iconsHtml = song.type === "youtube"
-      ? `<div class="icon" onclick="playSong('${song.id}','youtube')">▶</div>
-         <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')">YT</div>
-         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">⭐</div>`
-      : `<div class="icon" onclick="window.open('${song.url}','_blank')">Nico</div>
-         <div class="icon fav ${isFav ? 'active' : ''}" onclick="toggleFavorite('${song.id}')">⭐</div>`;
-
-    list.innerHTML += `
-      <div class="link">
-        <div class="left">
-          ${thumbHtml}
-          <div>
-            <div>${song.title}</div>
-            <div style="font-size:10px">${song.artist}</div>
-          </div>
-        </div>
-        ${iconsHtml}
-      </div>`;
+    let thumbHtml = song.type==='youtube'? `<img class="thumb" src="https://img.youtube.com/vi/${song.id}/mqdefault.jpg">`
+                   : `<div class="thumb" style="background:#666; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px;">niconico</div>`;
+    let playIcon = song.type==='youtube'
+      ? `<div class="icon" onclick="playSong('${song.id}','youtube')"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg"></div>
+         <div class="icon" onclick="window.open('https://youtu.be/${song.id}','_blank')"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg"></div>`
+      : `<div class="icon" onclick="playSong('${song.id}','niconico',${song.duration||200})"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Niconico_icon.png"></div>
+         <div class="icon" onclick="window.open('${song.url}','_blank')"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Niconico_icon.png"></div>`;
+    let favIcon = `<div class="icon fav ${isFav?'active':''}" onclick="toggleFavorite('${song.id}')">⭐</div>`;
+    list.innerHTML += `<div class="link"><div class="left">${thumbHtml}<div><div>${song.title}</div><div style="font-size:10px">${song.artist}</div></div></div>${playIcon}${favIcon}</div>`;
   });
 }
 
+// メニュー切替
 function switchMenu(menu){
-  currentMenu = menu;
-  document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+  currentMenu=menu;
+  document.querySelectorAll('.menu-btn').forEach(btn=>btn.classList.remove('active'));
   document.querySelector(`.menu-btn[onclick="switchMenu('${menu}')"]`).classList.add('active');
+  currentFilter='all';
+  populateArtistFilter();
   render();
 }
 
-function playSong(id,type){
-  const player = document.getElementById("player");
-  if(type === "youtube"){
-    player.style.display = "block";
-    player.src = "https://www.youtube.com/embed/" + id + "?autoplay=1";
+// メニュー別フィルター
+function filterByMenu(){
+  let listToUse;
+  switch(currentMenu){
+    case 'all': listToUse=songs; break;
+    case 'favorites': listToUse=songs.filter(s=>favorites.includes(s.id)); break;
+    case 'youtube': listToUse=songs.filter(s=>s.type==='youtube'); break;
+    case 'niconico': listToUse=songs.filter(s=>s.type==='niconico'); break;
+  }
+  if(currentFilter!=='all'){
+    const [type,artist] = currentFilter.split(" | ");
+    listToUse = listToUse.filter(s=>s.type===type && s.artist===artist);
+  }
+  return listToUse;
+}
+
+// 再生
+function playSong(id,type,duration){
+  clearInterval(progressInterval);
+  const playerBox = document.getElementById("playerBox");
+  const progress = document.getElementById("progress");
+  progress.style.width="0%";
+  playerBox.style.display="block";
+  if(type==='youtube'){
+    player.loadVideoById(id);
+    progressInterval=setInterval(()=>{
+      if(player && player.getDuration){
+        let pct = (player.getCurrentTime()/player.getDuration())*100;
+        document.getElementById("progress").style.width=pct+"%";
+      }
+    },200);
+  } else if(type==='niconico'){
+    document.getElementById('playerContainer').innerHTML=`<iframe src="https://ext.nicovideo.jp/thumb_watch/${id}" width="100%" height="200" frameborder="0" allowfullscreen></iframe>`;
+    let total = duration || 200;
+    let startTime = Date.now();
+    progressInterval = setInterval(()=>{
+      let elapsed = (Date.now()-startTime)/1000;
+      document.getElementById("progress").style.width = Math.min((elapsed/total)*100,100)+"%";
+      if(elapsed>=total) clearInterval(progressInterval);
+    },200);
   }
 }
 
+// お気に入り
 function toggleFavorite(id){
-  if(favorites.includes(id)){
-    favorites = favorites.filter(f => f !== id);
-  } else {
-    favorites.push(id);
-  }
-  localStorage.setItem("favorites", JSON.stringify(favorites));
+  if(favorites.includes(id)) favorites=favorites.filter(f=>f!==id);
+  else favorites.push(id);
+  localStorage.setItem("favorites",JSON.stringify(favorites));
+  populateArtistFilter();
   render();
 }
 
-// アーティスト検索
-function filterByArtist() {
-  const selected = document.getElementById("artistFilter").value;
-  let displaySongs = selected === 'all' ? songs : songs.filter(s => s.artist === selected);
-  render(displaySongs);
+// プルダウン検索
+function filterByArtist(){
+  currentFilter=document.getElementById("artistFilter").value;
+  render();
 }
 
 // 初期化
