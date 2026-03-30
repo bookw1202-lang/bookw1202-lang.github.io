@@ -380,7 +380,7 @@ function filterSongs(){
   let a=document.getElementById("artistFilter").value;
   let t=document.getElementById("titleFilter").value;
 
-  songs=songs.filter(s=>{
+  songs=allSongs.filter(s=>{
     return (a==="all"||s.artist===a) &&
            (t==="all"||s.title===t);
   });
