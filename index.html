@@ -325,8 +325,13 @@ function switchMenu(type,e){
   if(type==="favorites") baseSongs=allSongs.filter(s=>favorites.includes(s.id+s.title));
 
   songs=[...baseSongs];
-  populateFilter();
-  render();
+
+document.getElementById("search").value="";
+document.getElementById("artistFilter").value="all";
+document.getElementById("titleFilter").value="all";
+
+populateFilter();
+render();
 }
 
 /* ===== 検索 ===== */
